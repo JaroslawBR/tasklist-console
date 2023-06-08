@@ -7,7 +7,9 @@ val taskList = mapOf(
     "H" to mutableListOf<Pair<LocalDateTime, MutableList<String>>>(),
     "N" to mutableListOf<Pair<LocalDateTime, MutableList<String>>>(),
     "L" to mutableListOf<Pair<LocalDateTime, MutableList<String>>>()
-)
+) //sorted by priority
+
+val taskListStage = mutableListOf<Pair<String, MutableList<String>>>()
 
 fun main() {
     val task = Task() // Create an instance of the Task class
@@ -15,7 +17,7 @@ fun main() {
         println("Input an action (add, print, end):")
         when (readln()) {
             "add" -> task.addTask()
-            "print" -> task.taskPrint()
+            "print" -> task.taskPrintStage()
             "end" -> {
                 println("Tasklist exiting!")
                 break
@@ -91,30 +93,51 @@ class Task {
             return
         }
         taskList[priority]!!.add(Pair(dateTime, newTask))
+        taskListStage.add(Pair(("$dateTime|$priority"), newTask))
+
     }
 
-        fun taskPrint() {
-            if (taskList.all { (_, pairList) -> pairList.isEmpty() }) {
-                println("No tasks have been input")
-                return
-            }
-            var count = 0
-            for (priority in taskList) {
-                if (priority.key.isEmpty()) continue
+    fun taskPrint() {
+        if (taskList.all { (_, pairList) -> pairList.isEmpty() }) {
+            println("No tasks have been input")
+            return
+        }
+        var count = 0
+        for (priority in taskList) {
+            if (priority.key.isEmpty()) continue
 
-                for (i in taskList[priority.key]!!) {
-                    count++
-                    val formatDataTime = i.first.toString().replace("T", " ")
-                    println("$count ${if (count <= 9) " " else ""}$formatDataTime ${priority.key} ")
-                    val task = i.second
-                    for (part in task) {
-                        println("   $part")
-                    }
-                    println()
+            for (i in taskList[priority.key]!!) {
+                count++
+                val formatDataTime = i.first.toString().replace("T", " ")
+                println("$count ${if (count <= 9) " " else ""}$formatDataTime ${priority.key} ")
+                val task = i.second
+                for (part in task) {
+                    println("   $part")
                 }
+                println()
             }
         }
     }
+
+    fun taskPrintStage() {
+        if (taskListStage.isNotEmpty()) {
+            for ((i, task) in taskListStage.withIndex()) {
+                val taskNumber = i + 1
+                val taskName = task.first.replace("T", " ").replace("|", " ") //first element
+
+                println("$taskNumber ${if (i < 9) " " else ""}$taskName")
+                for (part in  task.second) {
+                    println("   $part")
+                }
+                println()
+            }
+        } else {
+            println("No tasks have been input")
+            println()
+        }
+    }
+}
+
 
 
 
