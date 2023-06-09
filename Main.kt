@@ -102,65 +102,66 @@ class Task {
 
     }
 
-    fun edit(){
-        if (taskListStage.size == 0) {
+    fun edit() {
+        if (taskListStage.isEmpty()) {
             println("No tasks have been input")
             return
         }
+
         taskPrintStage()
+
         while (true) {
             println("Input the task number (1-${taskListStage.size}):")
             try {
+                val index = readln().toInt() - 1
+                val editTask = taskListStage[index]
+
+                var priority = editTask.first.split("|")[1]
+                var (years, months, days) = editTask.first.split("T")[0].split("-").map { it.toInt() }
+                var (hours, minutes) = editTask.first.split("T")[1].split("|")[0].split(":").map { it.toInt() }
+                var newTask = editTask.second
+
                 while (true) {
-                    val index = readln().toInt() - 1
-                    val editTask = taskListStage[index]
-                    var priority = editTask.first.split("|")[1]
-                    var (years, months, days) = editTask.first.split("T")[0].split("-").map { it.toInt() }
-                    var (hours, minutes) = editTask.first.split("T")[1].split("|")[0].split(":").map { it.toInt() }
-                    var newTask = editTask.second
-                    while (true) {
-                        println("Input a field to edit (priority, date, time, task):")
-                        when (readln()) {
-                            "priority" -> {
-                                priority = Create().priority()
-                                break
-                            }
-
-                            "date" -> {
-                                val (years1, months1, days1) = Create().date()
-                                years = years1
-                                months = months1
-                                days = days1
-                                break
-                            }
-
-                            "time" -> {
-                                val (hours1, minutes1) = Create().time()
-                                hours = hours1
-                                minutes = minutes1
-                                break
-                            }
-
-                            "task" -> {
-                                newTask = Create().newTask()
-                                break
-                            }
-
-                            else -> {
-                                println("Invalid field")
-                            }
+                    println("Input a field to edit (priority, date, time, task):")
+                    when (readln()) {
+                        "priority" -> {
+                            priority = Create().priority()
+                            break
+                        }
+                        "date" -> {
+                            val (years1, months1, days1) = Create().date()
+                            years = years1
+                            months = months1
+                            days = days1
+                            break
+                        }
+                        "time" -> {
+                            val (hours1, minutes1) = Create().time()
+                            hours = hours1
+                            minutes = minutes1
+                            break
+                        }
+                        "task" -> {
+                            newTask = Create().newTask()
+                            break
+                        }
+                        else -> {
+                            println("Invalid field")
                         }
                     }
-                    val dateTime = LocalDateTime(years, months, days, hours, minutes)
-                    taskListStage[index] = Pair(("$dateTime|$priority"), newTask)
-                    println("The task is changed")
-                    return
                 }
-            }catch (e: Exception) {
+
+                val dateTime = LocalDateTime(years, months, days, hours, minutes)
+                taskListStage[index] = Pair("$dateTime|$priority", newTask)
+                println("The task is changed")
+                return
+
+            } catch (e: Exception) {
                 println("Invalid task number")
             }
         }
     }
+
 
 
     fun delete(){
