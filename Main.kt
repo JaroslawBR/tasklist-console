@@ -2,12 +2,6 @@ package tasklist
 
 import kotlinx.datetime.*
 
-val taskList = mapOf(
-    "C" to mutableListOf<Pair<LocalDateTime, MutableList<String>>>(),
-    "H" to mutableListOf<Pair<LocalDateTime, MutableList<String>>>(),
-    "N" to mutableListOf<Pair<LocalDateTime, MutableList<String>>>(),
-    "L" to mutableListOf<Pair<LocalDateTime, MutableList<String>>>()
-) //sorted by priority
 
 val taskListStage = mutableListOf<Pair<String, MutableList<String>>>()
 
@@ -31,8 +25,8 @@ fun main() {
 
 class Task {
 
-    class Create{
-        fun priority():String{
+    class Create {
+        fun priority(): String {
             while (true) {
                 println("Input the task priority (C, H, N, L):")
                 when (val priority = readln().uppercase()) {
@@ -43,7 +37,7 @@ class Task {
 
         }
 
-        fun date():Triple<Int, Int, Int>{
+        fun date(): Triple<Int, Int, Int> {
             while (true) {
                 println("Input the date (yyyy-mm-dd):")
                 val date = readln().split("-")
@@ -53,14 +47,13 @@ class Task {
                 }
                 if (checkTime(date[0], date[1], date[2], "0", "0")) {
                     return Triple(date[0].toInt(), date[1].toInt(), date[2].toInt())
-                }
-                else println("The input date is invalid")
+                } else println("The input date is invalid")
 
 
             }
         }
 
-        fun time():Pair<Int, Int> {
+        fun time(): Pair<Int, Int> {
             while (true) {
                 println("Input the time (hh:mm):")
                 val time = readln().split(":")
@@ -70,14 +63,13 @@ class Task {
                 }
                 if (checkTime("2022", "2", "11", time[0], time[1])) {
                     return Pair(time[0].toInt(), time[1].toInt())
-                }
-                else println("The input time is invalid")
+                } else println("The input time is invalid")
             }
 
 
         }
 
-        fun newTask(): MutableList<String>{
+        fun newTask(): MutableList<String> {
             val newTask = mutableListOf<String>()
             println("Input a new task (enter a blank line to end):")
             while (true) {
@@ -87,7 +79,6 @@ class Task {
             }
 
         }
-
 
 
         private fun checkTime(years: String, months: String, days: String, hours: String, minutes: String): Boolean {
@@ -128,6 +119,7 @@ class Task {
                             priority = Create().priority()
                             break
                         }
+
                         "date" -> {
                             val (years1, months1, days1) = Create().date()
                             years = years1
@@ -135,16 +127,19 @@ class Task {
                             days = days1
                             break
                         }
+
                         "time" -> {
                             val (hours1, minutes1) = Create().time()
                             hours = hours1
                             minutes = minutes1
                             break
                         }
+
                         "task" -> {
                             newTask = Create().newTask()
                             break
                         }
+
                         else -> {
                             println("Invalid field")
                         }
@@ -163,8 +158,7 @@ class Task {
     }
 
 
-
-    fun delete(){
+    fun delete() {
         if (taskListStage.size == 0) {
             println("No tasks have been input")
             return
@@ -176,14 +170,16 @@ class Task {
                 taskListStage.removeAt(readln().toInt() - 1)
                 println("The task is deleted")
                 return
-            } catch (e: Exception) { println("Invalid task number") }
+            } catch (e: Exception) {
+                println("Invalid task number")
+            }
         }
 
     }
 
     fun addTask() {
         val priority = Create().priority()
-        val (years, months, days)  = Create().date()
+        val (years, months, days) = Create().date()
         val (hours, minutes) = Create().time()
         val dateTime = LocalDateTime(years, months, days, hours, minutes)
         val newTask = Create().newTask()
@@ -191,33 +187,11 @@ class Task {
             println("The task is blank")
             return
         }
-        taskList[priority]!!.add(Pair(dateTime, newTask))
         taskListStage.add(Pair(("$dateTime|$priority"), newTask))
     }
 
-    fun taskPrint() {
-        if (taskList.all { (_, pairList) -> pairList.isEmpty() }) {
-            println("No tasks have been input")
-            return
-        }
-        var count = 0
-        for (priority in taskList) {
-            if (priority.key.isEmpty()) continue
 
-            for (i in taskList[priority.key]!!) {
-                count++
-                val formatDataTime = i.first.toString().replace("T", " ")
-                println("$count ${if (count <= 9) " " else ""}$formatDataTime ${priority.key} ")
-                val task = i.second
-                for (part in task) {
-                    println("   $part")
-                }
-                println()
-            }
-        }
-    }
-
-    private fun checkTimeTag(input: String): String{
+    private fun checkTimeTag(input: String): String {
         val time = input.split("|")[0].toLocalDateTime().date
         val localTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val dayDifference = time.daysUntil(localTime)
@@ -231,20 +205,64 @@ class Task {
 
     fun taskPrintStage() {
         if (taskListStage.isNotEmpty()) {
+            val line =
+                "+${"-".repeat(4)}+${"-".repeat(12)}+${"-".repeat(7)}+${"-".repeat(3)}+${"-".repeat(3)}+${"-".repeat(44)}+"
+            println(line)
+            println("| N  |    Date    | Time  | P | D |                   Task                     |")
+            println(line)
+
             for ((i, task) in taskListStage.withIndex()) {
-                val taskNumber = i + 1
-                val taskName = task.first.replace("T", " ").replace("|", " ") //first element
-                val timeTag = checkTimeTag(task.first)
-                println("$taskNumber ${if (i < 9) " " else ""}$taskName $timeTag")
-                for (part in  task.second) {
-                    println("   $part")
+                val taskNum = i + 1
+                val data = task.first.split("T")[0]
+                val due = checkTimeTag(task.first)
+                val dueTag = colorTag(due)
+                val time = task.first.split("T")[1].split("|")[0]
+                val priority = task.first.split("T")[1].split("|")[1]
+                val priorityTag = colorTag(priority)
+                val formatTask = formatTask(task.second)
+
+                print("| ")
+                if (taskNum < 9) print("$taskNum  |") else print("$taskNum |") //number task
+                print(" $data |")
+                print(" $time |")
+                print(" $priorityTag |")
+                print(" $dueTag |")
+                println("${formatTask[0]}|")
+
+                if (formatTask.size != 1) {
+                    for (t in 1 until formatTask.size) {
+                        print("|${" ".repeat(4)}|")
+                        print("${" ".repeat(12)}|")
+                        print("${" ".repeat(7)}|")
+                        print("${" ".repeat(3)}|")
+                        print("${" ".repeat(3)}|")
+                        println("${formatTask[t]}|")
+                    }
                 }
-                println()
+                println(line)
             }
+            println()
         } else {
             println("No tasks have been input")
             println()
         }
+    }
+
+    private fun colorTag(input: String): String {
+        return when (input) {
+            "C", "O" -> "\u001B[101m \u001B[0m"
+            "H", "T" -> "\u001B[103m \u001B[0m"
+            "N", "I" -> "\u001B[102m \u001B[0m"
+            else -> "\u001B[104m \u001B[0m"
+        }
+    }
+
+    private fun formatTask(input: MutableList<String>): List<String> {
+        return input.flatMap { task ->
+            val chunks = task.chunked(44) //split string to list if size is more than 44
+            chunks.map { chunk -> chunk.padEnd(44) }
+        }
+
     }
 }
 
