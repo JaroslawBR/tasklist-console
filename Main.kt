@@ -1,11 +1,22 @@
 package tasklist
 
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.datetime.*
+import java.io.File
 
 
-val taskListStage = mutableListOf<Pair<String, MutableList<String>>>()
+
+
+var taskListStage = mutableListOf<Pair<String, MutableList<String>>>()
 
 fun main() {
+    try {
+        taskListStage = Json().loadTaskList()
+    } catch (_: Exception) {}
     val task = Task() // Create an instance of the Task class
     while (true) {
         println("Input an action (add, print, edit, delete, end):")
@@ -16,6 +27,7 @@ fun main() {
             "delete" -> task.delete()
             "end" -> {
                 println("Tasklist exiting!")
+                Json().saveTaskListToFile()
                 break
             }
             else -> println("The input action is invalid")
@@ -260,9 +272,38 @@ class Task {
     private fun formatTask(input: MutableList<String>): List<String> {
         return input.flatMap { task ->
             val chunks = task.chunked(44) //split string to list if size is more than 44
-            chunks.map { chunk -> chunk.padEnd(44) }
+            chunks.map { chunk -> chunk.padEnd(44) }//change length string to 44
         }
 
+    }
+
+
+}
+
+class Json {
+    @JsonClass(generateAdapter = true)
+    data class TaskEntry(val key: String, val value: MutableList<String>)
+
+
+    private val fileLocation = "tasklist.json"
+    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+
+    fun saveTaskListToFile() {
+        val adapter: JsonAdapter<List<TaskEntry>> = moshi.adapter(
+            Types.newParameterizedType(List::class.java, TaskEntry::class.java)
+        )
+        val taskEntries = taskListStage.map { TaskEntry(it.first, it.second) }
+        val json = adapter.toJson(taskEntries)
+        File(fileLocation).writeText(json)
+    }
+
+    fun loadTaskList(): MutableList<Pair<String, MutableList<String>>> {
+        val adapter: JsonAdapter<List<TaskEntry>> = moshi.adapter(
+            Types.newParameterizedType(List::class.java, TaskEntry::class.java)
+        )
+        val json = File(fileLocation).readText()
+        val taskEntries = adapter.fromJson(json) ?: emptyList()
+        return taskEntries.map { it.key to it.value }.toMutableList()
     }
 }
 
